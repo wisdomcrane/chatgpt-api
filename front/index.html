@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChatGPT API</title>
+    <link rel="stylesheet" href="custom.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>ChatGPT API 앱</h1>
+      <h2>결과</h2>
+      <div id="conversation"></div>
+      <form id="chat-form">
+        <label class="label-text">역할을 입력하세요.</label>
+        <input
+          type="text"
+          id="role-input"
+          name="role-input"
+          required
+          value="You are a helpful assistant"
+        />
+        <label class="label-text">질문을 입력하세요.</label>
+        <textarea
+          id="question-input"
+          name="question-input"
+          required
+          rows="5"
+        ></textarea>
+        <div class="btn-container">
+          <button type="submit" class="btn" id="submit-btn">전송</button>
+        </div>
+      </form>
+    </div>
+    <script src="chat.js"></script>
+  </body>
+</html>

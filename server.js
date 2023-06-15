@@ -21,6 +21,13 @@ app.use(express.static(path.join(__dirname, "front"))); // 'front' 디렉토리�
 
 app.post("/ask", async (req, res) => {
   const question = req.body.question;
+  const conversationHistory = req.body.conversationHistory;
+
+  if (!question) {
+    res.status(400).send({
+      error: "질문을 입력해주세요.",
+    });
+  }
 
   let role = req.body.role;
   if (!role) {
@@ -32,10 +39,12 @@ app.post("/ask", async (req, res) => {
       apiKey: process.env.OPENAI_API_KEY,
     });
 
-    const messages = [
-      { role: "system", content: role },
-      { role: "user", content: question },
-    ];
+    // conversation history
+    let messages = [{ role: "system", content: role }];
+    if (conversationHistory) {
+      messages = [...messages, ...conversationHistory];
+    }
+    messages.push({ role: "user", content: question });
 
     const openai = new OpenAIApi(configuration);
     const response = await openai.createChatCompletion({

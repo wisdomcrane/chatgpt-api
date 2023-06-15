@@ -1,7 +1,38 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+}
+
 .container {
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+#conversation {
+  flex-grow: 1;
+  padding: 10px;
+  overflow-y: scroll;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  background-color: azure;
+}
+
+#chat-form {
+  padding: 10px;
+}
+
+.btn-container {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .label-text {

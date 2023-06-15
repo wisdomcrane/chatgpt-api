@@ -32,6 +32,9 @@ document.addEventListener("DOMContentLoaded", function () {
     p.innerHTML = `<strong>user</strong>: ${question}`;
     conversationDiv.appendChild(p);
 
+    // 추가 : scroll to bottom
+    conversationDiv.scrollTop = conversationDiv.scrollHeight;
+
     questionInput.value = "";
     const submitBtn = document.getElementById("submit-btn");
     submitBtn.disabled = true;
@@ -54,7 +57,9 @@ document.addEventListener("DOMContentLoaded", function () {
     })
       .then(async (res) => {
         const data = await res.json();
-
+        if (!res.ok) {
+          throw new Error(data.error);
+        }
         const p = document.createElement("p");
         p.className = "chatgpt";
         p.innerHTML = `<strong>ChatGPT</strong>: ${data.answer}`;
@@ -66,7 +71,12 @@ document.addEventListener("DOMContentLoaded", function () {
         submitBtn.disabled = false;
       })
       .catch((error) => {
-        console.error(error);
+        if (error) {
+          alert(error);
+        } else {
+          alert("에러가 발생했습니다.");
+        }
+        submitBtn.disabled = false;
       });
   });
 });

@@ -7,6 +7,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 
+import num_tokens_from_messages from "./token-counter.js";
+
 dotenv.config();
 
 const app = express();
@@ -24,7 +26,7 @@ app.post("/ask", async (req, res) => {
   const conversationHistory = req.body.conversationHistory;
 
   if (!question) {
-    res.status(400).send({
+    return res.status(400).send({
       error: "질문을 입력해주세요.",
     });
   }
@@ -39,12 +41,36 @@ app.post("/ask", async (req, res) => {
       apiKey: process.env.OPENAI_API_KEY,
     });
 
-    // conversation history
-    let messages = [{ role: "system", content: role }];
-    if (conversationHistory) {
-      messages = [...messages, ...conversationHistory];
+    // conversation history & token 관리
+    let messages = [
+      { role: "system", content: role },
+      { role: "user", content: question },
+    ];
+    // 토큰 관리 추가
+    let num_tokens = num_tokens_from_messages(messages);
+    if (num_tokens > 4096) {
+      return res.status(400).send({
+        error: "질문이 토큰 제한을 초과했습니다. 질문을 줄여주세요.",
+      });
     }
-    messages.push({ role: "user", content: question });
+    if (conversationHistory) {
+      messages = [
+        { role: "system", content: role },
+        ...conversationHistory,
+        { role: "user", content: question },
+      ];
+      num_tokens = num_tokens_from_messages(messages);
+      while (num_tokens > 3000 && conversationHistory.length > 0) {
+        const removedPart = conversationHistory.shift();
+        const removedToken = num_tokens_from_messages([removedPart]);
+        num_tokens -= removedToken;
+      }
+      messages = [
+        { role: "system", content: role },
+        ...conversationHistory,
+        { role: "user", content: question },
+      ];
+    }
 
     const openai = new OpenAIApi(configuration);
     const response = await openai.createChatCompletion({

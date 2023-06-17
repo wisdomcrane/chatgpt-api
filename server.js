@@ -76,14 +76,46 @@ app.post("/ask", async (req, res) => {
     }
 
     const openai = new OpenAIApi(configuration);
-    const response = await openai.createChatCompletion({
-      model: "gpt-3.5-turbo",
-      messages: messages,
+    const response = await openai.createChatCompletion(
+      {
+        model: "gpt-3.5-turbo",
+        messages: messages,
+        stream: true,
+      },
+      { responseType: "stream" }
+    );
+
+    response.data.on("data", (data) => {
+      const lines = data
+        .toString()
+        .split("\n")
+        .filter((line) => line.trim() !== "");
+      for (const line of lines) {
+        const message = line.replace(/^data: /, "");
+        if (message === "[DONE]") {
+          return; // Stream finished
+        }
+        try {
+          const parsed = JSON.parse(message);
+          const chunk = parsed.choices[0].delta?.content;
+          if (chunk) {
+            res.write(chunk);
+          }
+          // console.log(parsed.choices[0].delta?.content, "p");
+        } catch (error) {
+          console.error("Could not JSON parse stream message", message, error);
+        }
+      }
     });
-    const answer = response.data.choices[0].message.content.trim();
-    res.status(200).send({
-      answer: answer,
+
+    response.data.on("end", () => {
+      // console.log("\nStream done");
+      res.end(); // End the response when the stream finishes
     });
+    // const answer = response.data.choices[0].message.content.trim();
+    // res.status(200).send({
+    //   answer: answer,
+    // });
   } catch (e) {
     console.log(e);
     res.status(500).send({

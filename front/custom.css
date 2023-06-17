@@ -22,8 +22,13 @@ body {
   padding: 10px;
   overflow-y: scroll;
   /* white-space: pre-wrap; */
+  line-height: 1.6;
   overflow-wrap: break-word;
   background-color: azure;
+}
+
+.user {
+  white-space: pre-wrap;
 }
 
 #chat-form {

@@ -10,6 +10,20 @@ document.addEventListener("DOMContentLoaded", function () {
     headerIds: false,
   });
 
+  let atBottom = true;
+
+  conversationDiv.addEventListener("scroll", () => {
+    // 사용자가 스크롤을 올리면 atBottom을 false로 설정
+    if (
+      conversationDiv.scrollTop + conversationDiv.clientHeight <
+      conversationDiv.scrollHeight
+    ) {
+      atBottom = false;
+    } else {
+      atBottom = true;
+    }
+  });
+
   chatForm.addEventListener("submit", function (event) {
     event.preventDefault();
 
@@ -46,20 +60,43 @@ document.addEventListener("DOMContentLoaded", function () {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Connection: "keep-alive",
+        "Response-Type": "stream",
       },
       body: JSON.stringify(payload),
     })
       .then(async (res) => {
-        const data = await res.json();
         if (!res.ok) {
           throw new Error(data.error);
         }
+
         const div = document.createElement("div");
         div.className = "chatgpt";
-        div.innerHTML = `<strong>ChatGPT</strong><div>${marked
-          .parse(data.answer)
-          .trim()}</div>`;
+        div.innerHTML = `<strong>ChatGPT</strong><div id="conversation-content"></div>`;
         conversationDiv.appendChild(div);
+
+        // stream
+        if (!res || !res.body) {
+          throw new Error("No response body");
+        }
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let result = "";
+        let done = false;
+        while (!done) {
+          const { value, done: doneReading } = await reader.read();
+          const chunkValue = decoder.decode(value);
+          result += chunkValue;
+          done = doneReading;
+          // add to conversation
+          div.querySelector("#conversation-content").innerHTML = marked
+            .parse(result)
+            .trim();
+
+          if (atBottom) {
+            conversationDiv.scrollTop = conversationDiv.scrollHeight;
+          }
+        }
 
         conversationHistory.push(
           {
@@ -68,12 +105,9 @@ document.addEventListener("DOMContentLoaded", function () {
           },
           {
             role: "assistant",
-            content: data.answer,
+            content: result,
           }
         );
-
-        // 추가 : scroll to bottom
-        conversationDiv.scrollTop = conversationDiv.scrollHeight;
 
         submitBtn.disabled = false;
       })

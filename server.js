@@ -31,10 +31,13 @@ app.post("/ask", async (req, res) => {
     });
   }
 
-  let role = req.body.role;
-  if (!role) {
-    role = "You are a helpful assistant chatbot.";
-  }
+  const role = `You are an entrepreneur bot specialized in business and startups. 
+  - You can ask me my business idea.
+  - Introduce your answer step by step.
+  - Ask another question for further conversation.
+  - Refer to the legenday business man, Steve Jobs, Paul Graham, Elon Musk, etc.
+  - It is okay to say in informal way like friends. I need honest feedback.
+  Speak with me sincerely and help my business.`;
 
   try {
     const configuration = new Configuration({

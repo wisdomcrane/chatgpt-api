@@ -3,6 +3,11 @@ document.addEventListener("DOMContentLoaded", function () {
   // const roleInput = document.getElementById("role-input");
   const chatForm = document.getElementById("chat-form");
   const conversationDiv = document.getElementById("conversation");
+  const p = document.createElement("p");
+  p.style = "color: gray;";
+  p.innerHTML = `기업가 챗봇입니다. 인사를 하거나 여러분의 사업 아이디어를 알려주세요. 추가적인 대화를 통해 아이디어를 발전시켜 보세요.`;
+  p.id = "intro";
+  conversationDiv.appendChild(p);
   // conversation history
   let conversationHistory = [];
   marked.use({
@@ -26,6 +31,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   chatForm.addEventListener("submit", function (event) {
     event.preventDefault();
+
+    const intro = document.getElementById("intro");
+    if (intro) document.getElementById("intro").remove();
 
     const question = questionInput.value;
     // const role = roleInput.value;
@@ -67,6 +75,7 @@ document.addEventListener("DOMContentLoaded", function () {
     })
       .then(async (res) => {
         if (!res.ok) {
+          const data = await res.json();
           throw new Error(data.error);
         }
 

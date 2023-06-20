@@ -1,7 +1,10 @@
 import express from "express";
+import morgan from "morgan";
+import helmet from "helmet";
+import hpp from "hpp";
+import rateLimit from "express-rate-limit";
 import dotenv from "dotenv";
 import { Configuration, OpenAIApi } from "openai";
-
 // import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -12,15 +15,31 @@ import num_tokens_from_messages from "./token-counter.js";
 dotenv.config();
 
 const app = express();
+const limiter = rateLimit({
+  windowMs: 60 * 1000, // 1분
+  max: 60,
+  handler: function (req, res) {
+    res
+      .status(429)
+      .send({ error: "Too many requests, please try again later." });
+  },
+});
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// app.use(cors());
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 app.use(express.static(path.join(__dirname, "front"))); // 'front' 디렉토리를 static으로 설정
+if (process.env.NODE_ENV === "production") {
+  app.use(morgan("combined"));
+  app.use(helmet());
+  app.use(hpp());
+} else {
+  app.use(morgan("dev"));
+}
 
+app.use("/ask", limiter); // ask 경로에 대해서 rate limiter 적용
 app.post("/ask", async (req, res) => {
   const question = req.body.question;
   const conversationHistory = req.body.conversationHistory;
@@ -32,8 +51,8 @@ app.post("/ask", async (req, res) => {
   }
 
   const role = `You are an entrepreneur bot specialized in business and startups. 
-  - You can ask me my business idea.
-  - Introduce your answer step by step.
+  - You ask me my business idea.
+  - Introduce your answer or advice step by step.
   - Ask another question for further conversation.
   - Refer to the legenday business man, Steve Jobs, Paul Graham, Elon Musk, etc.
   - It is okay to say in informal way like friends. I need honest feedback.

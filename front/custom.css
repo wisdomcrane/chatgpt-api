@@ -5,7 +5,7 @@
 body {
   margin: 0;
   padding: 0;
-  height: 100vh;
+  height: calc(100 * var(--vh));
 }
 
 .container {
@@ -21,7 +21,6 @@ body {
   flex-grow: 1;
   padding: 10px;
   overflow-y: scroll;
-  /* white-space: pre-wrap; */
   line-height: 1.6;
   overflow-wrap: break-word;
   background-color: azure;
@@ -37,7 +36,7 @@ body {
 
 .btn-container {
   display: flex;
-  justify-content: flex-end;
+  position: relative;
 }
 
 .label-text {
@@ -54,7 +53,16 @@ body {
 #question-input {
   width: 100%;
   padding: 10px;
-  /* margin-bottom: 10px; */
+  max-height: 250px;
+  min-height: 48px;
+  resize: none;
+  /* Hide scrollbar for Firefox */
+  scrollbar-width: none;
+  padding-right: 80px;
+}
+
+#question-input::-webkit-scrollbar {
+  display: none;
 }
 
 #question-input:focus {
@@ -65,9 +73,13 @@ body {
   background-color: #007bff;
   border: none;
   padding: 10px;
-  min-width: 100px;
   color: white;
   cursor: pointer;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  height: 48px;
+  width: 80px;
 }
 
 p {

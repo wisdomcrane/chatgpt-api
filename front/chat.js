@@ -29,6 +29,14 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
+  const textarea = document.getElementById("question-input");
+
+  textarea.addEventListener("input", (event) => {
+    textarea.style.height = "auto";
+    const newHeight = textarea.scrollHeight;
+    textarea.style.height = newHeight + 5 + "px";
+  });
+
   chatForm.addEventListener("submit", function (event) {
     event.preventDefault();
 
@@ -63,8 +71,8 @@ document.addEventListener("DOMContentLoaded", function () {
     if (conversationHistory.length > 0) {
       payload.conversationHistory = conversationHistory;
     }
-
-    fetch("http://localhost:3000/ask", {
+    // http://localhost:3000/ask
+    fetch(`https://chatgpt-api-chatbot.fly.dev/ask`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -130,3 +138,11 @@ document.addEventListener("DOMContentLoaded", function () {
       });
   });
 });
+
+function setVH() {
+  let vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty("--vh", `${vh}px`);
+}
+
+window.addEventListener("resize", setVH);
+window.addEventListener("load", setVH);

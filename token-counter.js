@@ -39,17 +39,27 @@ export default function num_tokens_from_messages(
   }
 
   let num_tokens = 0;
+  let token_map = [];
   for (let message of messages) {
+    let num_token = tokens_per_message;
     num_tokens += tokens_per_message;
     for (let key in message) {
-      num_tokens += encoding.encode(message[key]).length;
+      const encodeLength = encoding.encode(message[key]).length;
+      num_token += encodeLength;
+      num_tokens += encodeLength;
       if (key === "name") {
+        num_token += tokens_per_name;
         num_tokens += tokens_per_name;
       }
     }
+    token_map.push({
+      role: message.role,
+      num_token,
+    });
   }
   num_tokens += 3; // every reply is primed with <|start|>assistant<|message|>
-  return num_tokens;
+  encoding.free();
+  return { num_tokens, token_map };
 }
 
 // const num_tokens = num_tokens_from_messages(

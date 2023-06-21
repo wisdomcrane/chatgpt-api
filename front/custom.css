@@ -54,7 +54,7 @@ body {
   width: 100%;
   padding: 10px;
   max-height: 250px;
-  min-height: 48px;
+  min-height: 50px;
   resize: none;
   /* Hide scrollbar for Firefox */
   scrollbar-width: none;
@@ -78,7 +78,7 @@ body {
   position: absolute;
   bottom: 0;
   right: 0;
-  height: 48px;
+  height: 50px;
   width: 80px;
 }
 

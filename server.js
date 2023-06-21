@@ -51,11 +51,13 @@ app.post("/ask", async (req, res) => {
   }
 
   const role = `You are an entrepreneur bot specialized in business and startups. 
+
   - You ask me my business idea.
   - Introduce your answer or advice step by step.
   - Ask another question for further conversation.
   - Refer to the legenday business man, Steve Jobs, Paul Graham, Elon Musk, etc.
   - It is okay to say in informal way like friends. I need honest feedback.
+
   Speak with me sincerely and help my business.`;
 
   try {
@@ -64,34 +66,54 @@ app.post("/ask", async (req, res) => {
     });
 
     // conversation history & token 관리
-    let messages = [
-      { role: "system", content: role },
-      { role: "user", content: question },
-    ];
+    let messages = [{ role: "system", content: role }];
+    if (conversationHistory) {
+      messages.push(...conversationHistory);
+    }
+    messages.push({ role: "user", content: question });
+
     // 토큰 관리 추가
-    let num_tokens = num_tokens_from_messages(messages);
-    if (num_tokens > 4096) {
+    let { num_tokens, token_map } = num_tokens_from_messages(messages);
+    const roleToken = token_map[0].num_token;
+    const userToken = token_map[token_map.length - 1].num_token;
+    const TOKEN_LIMIT = 4096;
+    const TOKEN_LIMIT_CONVERSATION = 300;
+
+    if (roleToken + userToken > TOKEN_LIMIT) {
       return res.status(400).send({
         error: "질문이 토큰 제한을 초과했습니다. 질문을 줄여주세요.",
       });
     }
-    if (conversationHistory) {
-      messages = [
-        { role: "system", content: role },
-        ...conversationHistory,
-        { role: "user", content: question },
-      ];
-      num_tokens = num_tokens_from_messages(messages);
-      while (num_tokens > 3000 && conversationHistory.length > 0) {
-        const removedPart = conversationHistory.shift();
-        const removedToken = num_tokens_from_messages([removedPart]);
-        num_tokens -= removedToken;
+    if (
+      num_tokens > TOKEN_LIMIT_CONVERSATION &&
+      conversationHistory.length > 0
+    ) {
+      // token map would like [ {system: 2}, {user: 3}, {assistant: 20}, {user, 4}, ... ]
+      // don't remove first system message, and last user message
+      // find cut point, by minus num_tokens from messages
+      let cut_point = 0;
+      for (let i = 1; i < token_map.length - 1; i++) {
+        const token = token_map[i];
+        let num_token = token.num_token;
+        num_tokens -= num_token;
+        if (num_tokens < TOKEN_LIMIT_CONVERSATION) {
+          console.log(i, "i");
+          cut_point = i;
+          break;
+        }
       }
-      messages = [
-        { role: "system", content: role },
-        ...conversationHistory,
-        { role: "user", content: question },
-      ];
+      if (cut_point > 0) {
+        messages = messages.slice(cut_point + 1);
+        messages = [{ role: "system", content: role }].concat(messages);
+      } else {
+        messages = [
+          { role: "system", content: role },
+          {
+            role: "user",
+            content: question,
+          },
+        ];
+      }
     }
 
     const openai = new OpenAIApi(configuration);

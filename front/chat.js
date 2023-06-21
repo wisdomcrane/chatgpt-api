@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
   textarea.addEventListener("input", (event) => {
     textarea.style.height = "auto";
     const newHeight = textarea.scrollHeight;
-    textarea.style.height = newHeight + 5 + "px";
+    textarea.style.height = newHeight + "px";
   });
 
   chatForm.addEventListener("submit", function (event) {

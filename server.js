@@ -89,15 +89,14 @@ app.post("/ask", async (req, res) => {
       conversationHistory.length > 0
     ) {
       // token map would like [ {system: 2}, {user: 3}, {assistant: 20}, {user, 4}, ... ]
-      // don't remove first system message, and last user message
-      // find cut point, by minus num_tokens from messages
+      // first system message 와 last user message는 지우지 않는다.
+      // find cut point, messages의 num_tokens에서 message의 숫자를 빼면서 잘라낼 배열의 포인트를 찾는다.
       let cut_point = 0;
       for (let i = 1; i < token_map.length - 1; i++) {
         const token = token_map[i];
         let num_token = token.num_token;
         num_tokens -= num_token;
         if (num_tokens < TOKEN_LIMIT_CONVERSATION) {
-          console.log(i, "i");
           cut_point = i;
           break;
         }

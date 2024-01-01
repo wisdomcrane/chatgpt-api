@@ -75,7 +75,6 @@ document.addEventListener("DOMContentLoaded", function () {
     if (conversationHistory.length > 0) {
       payload.conversationHistory = conversationHistory;
     }
-    // http://localhost:3000/ask
     fetch(`https://chatgpt-api-chatbot.fly.dev/ask`, {
       method: "POST",
       headers: {

@@ -1,13 +1,12 @@
-import { Configuration, OpenAIApi } from "openai";
+import OpenAI from "openai";
 import dotenv from "dotenv";
 dotenv.config();
 
-const configuration = new Configuration({
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const openai = new OpenAIApi(configuration);
-const chat = await openai.createChatCompletion({
+const chat = await openai.chat.completions.create({
   model: "gpt-3.5-turbo",
   messages: [
     {
@@ -23,4 +22,4 @@ const chat = await openai.createChatCompletion({
     { role: "user", content: "How can I find the meaning?" },
   ],
 });
-console.log(chat.data.choices[0].message.content);
+console.log(chat.choices[0].message.content);

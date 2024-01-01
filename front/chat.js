@@ -60,6 +60,10 @@ document.addEventListener("DOMContentLoaded", function () {
     conversationDiv.scrollTop = conversationDiv.scrollHeight;
 
     questionInput.value = "";
+
+    // 추가 : 전송 후 textarea를 원래대로 돌려놓기
+    questionInput.style.height = "50px";
+
     const submitBtn = document.getElementById("submit-btn");
     submitBtn.disabled = true;
 

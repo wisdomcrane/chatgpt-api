@@ -4,7 +4,7 @@ import helmet from "helmet";
 import hpp from "hpp";
 import rateLimit from "express-rate-limit";
 import dotenv from "dotenv";
-import { Configuration, OpenAIApi } from "openai";
+import OpenAI from "openai";
 // import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -61,10 +61,9 @@ app.post("/ask", async (req, res) => {
   Speak with me sincerely and help my business.`;
 
   try {
-    const configuration = new Configuration({
+    const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
     });
-
     // conversation history & token 관리
     let messages = [{ role: "system", content: role }];
     if (conversationHistory) {
@@ -115,7 +114,6 @@ app.post("/ask", async (req, res) => {
       }
     }
 
-    const openai = new OpenAIApi(configuration);
     const response = await openai.createChatCompletion(
       {
         model: "gpt-3.5-turbo",

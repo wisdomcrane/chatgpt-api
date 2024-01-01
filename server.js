@@ -114,50 +114,36 @@ app.post("/ask", async (req, res) => {
       }
     }
 
-    const response = await openai.createChatCompletion(
-      {
-        model: "gpt-3.5-turbo",
-        messages: messages,
-        stream: true,
-      },
-      { responseType: "stream" }
-    );
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: messages,
+      stream: true,
+    });
 
-    response.data.on("data", (data) => {
-      const lines = data
-        .toString()
-        .split("\n")
-        .filter((line) => line.trim() !== "");
-      for (const line of lines) {
-        const message = line.replace(/^data: /, "");
-        if (message === "[DONE]") {
-          return; // Stream finished
-        }
-        try {
-          const parsed = JSON.parse(message);
-          const chunk = parsed.choices[0].delta?.content;
-          if (chunk) {
-            res.write(chunk);
+    async function processStream(response, res) {
+      try {
+        for await (const chunk of response.iterator()) {
+          try {
+            const content = chunk.choices[0].delta.content;
+            if (content) {
+              res.write(content); // 클라이언트에게 content 내용 전송
+            }
+          } catch (error) {
+            console.error("Error processing chunk:", error);
           }
-          // console.log(parsed.choices[0].delta?.content, "p");
-        } catch (error) {
-          console.error("Could not JSON parse stream message", message, error);
         }
+      } catch (error) {
+        console.error("Stream error:", error);
+        res.status(500).end();
       }
-    });
+      res.end(); // 스트림 처리 완료 후 연결 종료
+    }
 
-    response.data.on("end", () => {
-      // console.log("\nStream done");
-      res.end(); // End the response when the stream finishes
-    });
-    // const answer = response.data.choices[0].message.content.trim();
-    // res.status(200).send({
-    //   answer: answer,
-    // });
-  } catch (e) {
-    console.log(e);
+    processStream(response, res);
+  } catch (error) {
+    console.log(error);
     res.status(500).send({
-      error: "ChatGPT 통신 중 에러가 발생했습니다.",
+      error: "서버 오류가 발생했습니다.",
     });
   }
 });
